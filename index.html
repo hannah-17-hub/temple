@@ -455,15 +455,16 @@
 
       .mobile-info-sheet {
         position: fixed;
-        left: max(10px, env(safe-area-inset-left));
-        right: max(10px, env(safe-area-inset-right));
-        bottom: calc(clamp(8px, 2.4dvh, 16px) + env(safe-area-inset-bottom));
+        left: var(--sheet-left, 50vw);
+        top: var(--sheet-top, 50dvh);
+        right: auto;
+        bottom: auto;
         z-index: 40;
         display: block;
-        width: auto;
-        max-width: clamp(220px, 82vw, 340px);
+        width: clamp(220px, 82vw, 340px);
+        max-width: calc(100vw - 20px);
         max-height: clamp(126px, 30dvh, 280px);
-        margin-inline: auto;
+        margin: 0;
         padding: clamp(8px, 2.5vw, 14px) clamp(10px, 3vw, 16px) clamp(9px, 2.7vw, 15px);
         border: 1px solid rgba(91, 56, 32, 0.22);
         border-radius: clamp(8px, 2.4vw, 12px);
@@ -473,7 +474,8 @@
         opacity: 0;
         overflow: auto;
         pointer-events: none;
-        transform: translateY(24px);
+        visibility: hidden;
+        transform: translate(-50%, 10px);
         transition: opacity 160ms ease, transform 160ms ease;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
@@ -482,7 +484,12 @@
       body.has-mobile-sheet .mobile-info-sheet {
         opacity: 1;
         pointer-events: auto;
-        transform: translateY(0);
+        visibility: visible;
+        transform: translate(-50%, 0);
+      }
+
+      body.has-mobile-sheet .mobile-info-sheet.is-above {
+        transform: translate(-50%, 0);
       }
 
       .mobile-info-sheet .info-close {
@@ -770,7 +777,32 @@
 
     function hideMobileSheet() {
       document.body.classList.remove("has-mobile-sheet");
+      mobileSheet.classList.remove("is-above");
       mobileSheetContent.innerHTML = "";
+    }
+
+    function positionMobileSheet(marker) {
+      const markerRect = marker.getBoundingClientRect();
+      const gap = 12;
+      const margin = 10;
+      const sheetWidth = mobileSheet.offsetWidth;
+      const sheetHeight = mobileSheet.offsetHeight;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const minLeft = margin + sheetWidth / 2;
+      const maxLeft = viewportWidth - margin - sheetWidth / 2;
+      const markerCenterX = markerRect.left + markerRect.width / 2;
+      const nextLeft = Math.min(Math.max(markerCenterX, minLeft), maxLeft);
+      const belowTop = markerRect.bottom + gap;
+      const aboveTop = markerRect.top - sheetHeight - gap;
+      const shouldShowAbove = belowTop + sheetHeight > viewportHeight - margin && aboveTop >= margin;
+      const nextTop = shouldShowAbove
+        ? aboveTop
+        : Math.min(belowTop, viewportHeight - margin - sheetHeight);
+
+      mobileSheet.classList.toggle("is-above", shouldShowAbove);
+      mobileSheet.style.setProperty("--sheet-left", `${nextLeft}px`);
+      mobileSheet.style.setProperty("--sheet-top", `${Math.max(margin, nextTop)}px`);
     }
 
     function showMobileSheet(marker) {
@@ -778,6 +810,7 @@
       sourceInfo.querySelector(".info-close")?.remove();
       mobileSheetContent.innerHTML = sourceInfo.innerHTML;
       document.body.classList.add("has-mobile-sheet");
+      requestAnimationFrame(() => positionMobileSheet(marker));
     }
 
     function syncOverlayState() {
@@ -864,6 +897,12 @@
       event.stopPropagation();
       closeMarkers();
     });
+    mapScroller?.addEventListener("scroll", () => {
+      const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
+      if (activeMarker && portraitQuery.matches) {
+        positionMobileSheet(activeMarker);
+      }
+    }, { passive: true });
     window.addEventListener("load", () => {
       centerMapOnPortrait();
       const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
