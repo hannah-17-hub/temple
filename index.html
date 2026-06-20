@@ -312,14 +312,19 @@
       backdrop-filter: blur(8px);
     }
 
-    .daxiong { left: 50%; top: 17%; }
-    .wenshu { left: 25%; top: 21%; }
-    .puxian { left: 75%; top: 21%; }
-    .clock { left: 24%; top: 52%; }
-    .drum { left: 74%; top: 52%; }
-    .tianwang { left: 50%; top: 48%; }
-    .caishen { left: 78%; top: 72%; }
-    .gate { left: 50%; top: 82%; }
+    .daxiong { --marker-x: 50; --marker-y: 17; }
+    .wenshu { --marker-x: 24; --marker-y: 24; }
+    .puxian { --marker-x: 76; --marker-y: 24; }
+    .clock { --marker-x: 23.5; --marker-y: 49; }
+    .drum { --marker-x: 74.5; --marker-y: 49; }
+    .tianwang { --marker-x: 50; --marker-y: 48; }
+    .caishen { --marker-x: 78; --marker-y: 72; }
+    .gate { --marker-x: 50; --marker-y: 82; }
+
+    .marker {
+      left: calc(var(--marker-x) * 1%);
+      top: calc(var(--marker-y) * 1%);
+    }
 
     @media (max-width: 760px) {
       .page {
@@ -407,15 +412,6 @@
       .marker.is-active .info {
         transform: translateY(0);
       }
-
-      .daxiong { left: 50%; top: 17%; }
-      .wenshu { left: 25%; top: 21%; }
-      .puxian { left: 75%; top: 21%; }
-      .clock { left: 24%; top: 52%; }
-      .drum { left: 74%; top: 52%; }
-      .tianwang { left: 50%; top: 48%; }
-      .caishen { left: 78%; top: 72%; }
-      .gate { left: 50%; top: 82%; }
 
       .info h2 {
         margin-bottom: clamp(4px, 1.4vw, 7px);
@@ -879,16 +875,6 @@
     const portraitQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
     const landscapeQuery = window.matchMedia("(max-width: 920px) and (orientation: landscape)");
     const mobileQuery = window.matchMedia("(max-width: 920px)");
-    const markerImagePositions = {
-      daxiong: [50, 17],
-      wenshu: [24, 24],
-      puxian: [76, 24],
-      clock: [23.5, 49],
-      drum: [74.5, 49],
-      tianwang: [50, 48],
-      caishen: [78, 72],
-      gate: [50, 82],
-    };
     const mobileSheet = document.createElement("aside");
     const mobileCloseButton = document.createElement("button");
     const mobileSheetContent = document.createElement("div");
@@ -943,12 +929,14 @@
       }
 
       markers.forEach((marker) => {
-        const className = Object.keys(markerImagePositions).find((name) => marker.classList.contains(name));
-        if (!className) {
+        const styles = getComputedStyle(marker);
+        const imageX = Number.parseFloat(styles.getPropertyValue("--marker-x"));
+        const imageY = Number.parseFloat(styles.getPropertyValue("--marker-y"));
+
+        if (!Number.isFinite(imageX) || !Number.isFinite(imageY)) {
           return;
         }
 
-        const [imageX, imageY] = markerImagePositions[className];
         const left = ((offsetX + renderedWidth * imageX / 100) / rect.width) * 100;
         const top = ((offsetY + renderedHeight * imageY / 100) / rect.height) * 100;
         marker.style.left = `${left}%`;
