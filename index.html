@@ -142,6 +142,12 @@
       touch-action: manipulation;
     }
 
+    .marker:hover,
+    .marker:focus-within,
+    .marker.is-active {
+      z-index: 12;
+    }
+
     .marker::after {
       content: "";
       position: absolute;
@@ -199,6 +205,7 @@
 
     .info {
       position: absolute;
+      z-index: 3;
       left: 0;
       bottom: 54px;
       width: min(270px, 78vw);
@@ -233,6 +240,26 @@
 
     .marker.is-active .info {
       pointer-events: auto;
+    }
+
+    .daxiong .info,
+    .wenshu .info,
+    .puxian .info {
+      top: 54px;
+      bottom: auto;
+      transform: translateX(-50%) translateY(-8px);
+    }
+
+    .daxiong:hover .info,
+    .daxiong:focus-visible .info,
+    .daxiong.is-active .info,
+    .wenshu:hover .info,
+    .wenshu:focus-visible .info,
+    .wenshu.is-active .info,
+    .puxian:hover .info,
+    .puxian:focus-visible .info,
+    .puxian.is-active .info {
+      transform: translateX(-50%) translateY(0);
     }
 
     .info h2 {
@@ -328,6 +355,7 @@
         position: fixed;
         left: 50vw;
         right: auto;
+        top: auto;
         bottom: calc(12px + env(safe-area-inset-bottom));
         z-index: 20;
         width: min(360px, calc(100vw - 24px));
