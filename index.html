@@ -113,6 +113,10 @@
       isolation: isolate;
     }
 
+    main {
+      max-width: 100%;
+    }
+
     .map-art {
       display: block;
       width: 100%;
@@ -417,6 +421,27 @@
       }
     }
 
+    @media (max-width: 760px) and (orientation: portrait) {
+      main {
+        margin: 0 -10px;
+        padding: 0 10px 10px;
+        overflow-x: auto;
+        overflow-y: visible;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+      }
+
+      .map-shell {
+        width: min(660px, 156vw);
+        max-width: none;
+      }
+
+      .caption {
+        display: none;
+      }
+    }
+
     @media (max-width: 920px) and (orientation: landscape) {
       body.has-active-marker {
         overflow: hidden;
@@ -632,7 +657,19 @@
     </main>
   </div>
   <script>
+    const mapScroller = document.querySelector("main");
     const markers = Array.from(document.querySelectorAll(".marker"));
+    const portraitQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
+
+    function centerMapOnPortrait() {
+      if (!portraitQuery.matches || !mapScroller) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        mapScroller.scrollLeft = (mapScroller.scrollWidth - mapScroller.clientWidth) / 2;
+      });
+    }
 
     function syncOverlayState() {
       document.body.classList.toggle(
@@ -701,6 +738,8 @@
     });
 
     document.addEventListener("click", () => closeMarkers());
+    window.addEventListener("load", centerMapOnPortrait);
+    window.addEventListener("resize", centerMapOnPortrait);
   </script>
 </body>
 </html>
