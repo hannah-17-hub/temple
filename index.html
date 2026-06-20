@@ -538,8 +538,11 @@
       }
 
       .page {
-        width: min(calc((100dvh - 20px) * 1.5), calc(100vw - 20px));
-        padding: 10px 0;
+        display: grid;
+        place-items: center;
+        width: 100%;
+        min-height: 100dvh;
+        padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
       }
 
       header {
@@ -547,11 +550,15 @@
       }
 
       .map-shell {
+        width: min(calc(100vw - 12px), calc((100dvh - 12px) * 1.5));
         aspect-ratio: 3 / 2;
         height: auto;
+        border-width: 3px;
+        border-radius: 14px;
       }
 
       .map-art {
+        width: 100%;
         height: auto;
         aspect-ratio: 3 / 2;
         object-fit: contain;
@@ -561,17 +568,25 @@
         display: none;
       }
 
+      .marker .info {
+        display: none;
+      }
+
       .info {
-        inset: calc(10px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
+        position: fixed;
         left: auto;
-        bottom: auto;
-        width: auto;
-        max-height: none;
-        padding: clamp(18px, 4vw, 28px);
-        border-radius: 14px;
+        top: auto;
+        right: calc(10px + env(safe-area-inset-right));
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        z-index: 30;
+        width: min(340px, 44vw);
+        max-height: min(58dvh, 230px);
+        padding: clamp(10px, 2vw, 16px);
+        border-radius: 10px;
         background:
           linear-gradient(180deg, rgba(255, 250, 234, 0.98), rgba(250, 239, 204, 0.98));
-        transform: translateY(10px) scale(0.98);
+        overflow: auto;
+        transform: translateY(8px) scale(0.98);
       }
 
       .marker:hover .info,
@@ -585,18 +600,98 @@
       }
 
       .info h2 {
-        margin-right: 46px;
-        font-size: clamp(22px, 4vw, 34px);
+        margin-right: 34px;
+        font-size: clamp(15px, 2.4vw, 20px);
       }
 
       .info p {
-        max-width: 760px;
-        font-size: clamp(15px, 2.4vw, 18px);
+        max-width: none;
+        font-size: clamp(12px, 1.85vw, 14px);
+        line-height: 1.55;
       }
 
       .blessing {
-        margin-top: 14px;
-        font-size: clamp(15px, 2.2vw, 18px);
+        margin-top: 8px;
+        font-size: clamp(12px, 1.85vw, 14px);
+      }
+
+      .info-close {
+        width: 28px;
+        height: 28px;
+        margin: -3px -3px 0 8px;
+        font-size: 18px;
+      }
+
+      .mobile-info-sheet {
+        position: fixed;
+        left: auto;
+        top: auto;
+        right: calc(10px + env(safe-area-inset-right));
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        z-index: 40;
+        display: block;
+        width: min(280px, 38vw);
+        max-height: min(48dvh, 170px);
+        padding: clamp(9px, 1.7vw, 14px);
+        border: 1px solid rgba(91, 56, 32, 0.22);
+        border-radius: 10px;
+        background: rgba(255, 249, 232, 0.98);
+        color: var(--ink);
+        box-shadow: 0 18px 42px rgba(42, 25, 12, 0.28);
+        opacity: 0;
+        overflow: auto;
+        pointer-events: none;
+        visibility: hidden;
+        transform: translateY(8px);
+        transition: opacity 160ms ease, transform 160ms ease;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      body.has-mobile-sheet .mobile-info-sheet {
+        opacity: 1;
+        pointer-events: auto;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .mobile-info-sheet .info-close {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        float: right;
+        width: 26px;
+        height: 26px;
+        margin: -2px -2px 0 8px;
+        border-radius: 999px;
+        background: rgba(91, 56, 32, 0.1);
+        font-size: 17px;
+        line-height: 1;
+      }
+
+      .mobile-info-sheet h2 {
+        margin: 0 0 4px;
+        font-size: clamp(14px, 2.1vw, 18px);
+        line-height: 1.25;
+      }
+
+      .mobile-info-sheet p {
+        margin: 0;
+        color: var(--muted);
+        font-size: clamp(11px, 1.65vw, 13px);
+        line-height: 1.48;
+      }
+
+      .mobile-info-sheet .blessing {
+        display: inline-flex;
+        margin-top: 7px;
+        color: var(--red);
+        font-size: clamp(11px, 1.65vw, 13px);
+        font-weight: 800;
+        line-height: 1.48;
       }
     }
 
@@ -751,6 +846,7 @@
     const mapScroller = document.querySelector("main");
     const markers = Array.from(document.querySelectorAll(".marker"));
     const portraitQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
+    const mobileQuery = window.matchMedia("(max-width: 920px)");
     const mobileSheet = document.createElement("aside");
     const mobileCloseButton = document.createElement("button");
     const mobileSheetContent = document.createElement("div");
@@ -810,7 +906,13 @@
       sourceInfo.querySelector(".info-close")?.remove();
       mobileSheetContent.innerHTML = sourceInfo.innerHTML;
       document.body.classList.add("has-mobile-sheet");
-      requestAnimationFrame(() => positionMobileSheet(marker));
+      requestAnimationFrame(() => {
+        if (portraitQuery.matches) {
+          positionMobileSheet(marker);
+        } else {
+          mobileSheet.classList.remove("is-above");
+        }
+      });
     }
 
     function syncOverlayState() {
@@ -854,7 +956,7 @@
         closeMarkers(marker);
         marker.classList.toggle("is-active", nextActive);
         marker.setAttribute("aria-expanded", String(nextActive));
-        if (nextActive && portraitQuery.matches) {
+        if (nextActive && mobileQuery.matches) {
           showMobileSheet(marker);
         } else {
           hideMobileSheet();
@@ -906,14 +1008,14 @@
     window.addEventListener("load", () => {
       centerMapOnPortrait();
       const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
-      if (activeMarker && portraitQuery.matches) {
+      if (activeMarker && mobileQuery.matches) {
         showMobileSheet(activeMarker);
       }
     });
     window.addEventListener("resize", () => {
       centerMapOnPortrait();
       const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
-      if (activeMarker && portraitQuery.matches) {
+      if (activeMarker && mobileQuery.matches) {
         showMobileSheet(activeMarker);
       } else {
         hideMobileSheet();
