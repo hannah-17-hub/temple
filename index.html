@@ -118,11 +118,36 @@
     }
 
     .map-art {
+      position: relative;
+      z-index: 0;
       display: block;
       width: 100%;
       height: auto;
       aspect-ratio: 16 / 10;
       object-fit: cover;
+      opacity: 0;
+      transition: opacity 260ms ease;
+    }
+
+    .map-art.is-loaded {
+      opacity: 1;
+    }
+
+    .map-placeholder {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(12px) saturate(1.06);
+      transform: scale(1.04);
+      opacity: 1;
+      transition: opacity 260ms ease;
+    }
+
+    .map-shell.is-loaded .map-placeholder {
+      opacity: 0;
     }
 
     .map-shell::after {
@@ -790,6 +815,7 @@
 
     <main>
       <section class="map-shell" aria-label="银杏寺庙中轴线地图">
+        <img class="map-placeholder" src="assets/temple-map-axis-bell-drum-placeholder.jpg" width="160" height="107" alt="" aria-hidden="true">
         <img class="map-art" src="assets/temple-map-axis-bell-drum-optimized.jpg" width="1280" height="853" fetchpriority="high" onerror="this.onerror=null; this.src='assets/temple-map-axis-bell-drum.png'; this.width=1536; this.height=1024;" alt="秋日银杏寺庙庭院中轴线地图，钟楼和鼓楼位于山门与天王殿之间">
 
         <article class="marker daxiong" tabindex="0" aria-label="大雄宝殿">
@@ -872,6 +898,7 @@
     const mapScroller = document.querySelector("main");
     const mapShell = document.querySelector(".map-shell");
     const mapArt = document.querySelector(".map-art");
+    const mapPlaceholder = document.querySelector(".map-placeholder");
     const markers = Array.from(document.querySelectorAll(".marker"));
     const portraitQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
     const landscapeQuery = window.matchMedia("(max-width: 920px) and (orientation: landscape)");
@@ -889,6 +916,13 @@
     mobileCloseButton.innerHTML = "&times;";
     mobileSheet.append(mobileCloseButton, mobileSheetContent);
     document.body.append(mobileSheet);
+
+    function markMapLoaded() {
+      mapArt?.classList.add("is-loaded");
+      mapShell?.classList.add("is-loaded");
+      mapPlaceholder?.setAttribute("aria-hidden", "true");
+      scheduleResponsiveLayoutSync();
+    }
 
     function centerMapOnPortrait() {
       if (!portraitQuery.matches || !mapScroller) {
@@ -1112,7 +1146,10 @@
     window.addEventListener("load", scheduleResponsiveLayoutSync);
     window.addEventListener("resize", scheduleResponsiveLayoutSync);
     window.addEventListener("orientationchange", scheduleResponsiveLayoutSync);
-    mapArt?.addEventListener("load", scheduleResponsiveLayoutSync);
+    mapArt?.addEventListener("load", markMapLoaded);
+    if (mapArt?.complete && mapArt.naturalWidth > 0) {
+      markMapLoaded();
+    }
     watchMediaQuery(portraitQuery);
     watchMediaQuery(landscapeQuery);
     watchMediaQuery(mobileQuery);
