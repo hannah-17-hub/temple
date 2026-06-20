@@ -20,9 +20,15 @@
       box-sizing: border-box;
     }
 
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
       color: var(--ink);
       font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
       background:
@@ -33,6 +39,7 @@
 
     .page {
       width: min(1220px, calc(100% - 32px));
+      max-width: 100%;
       margin: 0 auto;
       padding: 26px 0 30px;
     }
@@ -51,6 +58,7 @@
       line-height: 1.02;
       letter-spacing: 0;
       text-shadow: 2px 2px 0 rgba(255, 251, 224, 0.94), 6px 6px 0 rgba(151, 59, 46, 0.1);
+      overflow-wrap: anywhere;
     }
 
     .tagline {
@@ -59,6 +67,7 @@
       color: rgba(52, 39, 29, 0.76);
       font-size: clamp(14px, 2vw, 18px);
       line-height: 1.75;
+      overflow-wrap: anywhere;
     }
 
     .legend {
@@ -81,6 +90,7 @@
       color: rgba(52, 39, 29, 0.76);
       font-size: 13px;
       white-space: nowrap;
+      max-width: 100%;
       backdrop-filter: blur(8px);
     }
 
@@ -94,6 +104,7 @@
 
     .map-shell {
       position: relative;
+      width: 100%;
       border: 4px solid rgba(91, 56, 32, 0.58);
       border-radius: 18px;
       background: #cba25b;
@@ -203,6 +214,16 @@
       transition: opacity 160ms ease, transform 160ms ease;
     }
 
+    .info-close {
+      display: none;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
     .marker:hover .info,
     .marker:focus-visible .info,
     .marker.is-active .info {
@@ -210,10 +231,15 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    .marker.is-active .info {
+      pointer-events: auto;
+    }
+
     .info h2 {
       margin: 0 0 6px;
       font-size: 18px;
       line-height: 1.28;
+      overflow-wrap: anywhere;
     }
 
     .info p {
@@ -221,6 +247,7 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.65;
+      overflow-wrap: anywhere;
     }
 
     .blessing {
@@ -229,6 +256,7 @@
       color: var(--red);
       font-size: 13px;
       font-weight: 800;
+      overflow-wrap: anywhere;
     }
 
     .caption {
@@ -262,6 +290,7 @@
       .page {
         width: min(100% - 20px, 640px);
         padding-top: 20px;
+        padding-bottom: calc(18px + env(safe-area-inset-bottom));
       }
 
       header {
@@ -271,14 +300,16 @@
       .legend {
         justify-content: flex-start;
         margin-top: 12px;
+        min-width: 0;
       }
 
       .map-shell {
-        min-height: 760px;
+        min-height: 0;
       }
 
       .map-art {
-        height: 760px;
+        height: clamp(600px, 190vw, 860px);
+        object-position: center top;
       }
 
       .pin {
@@ -293,6 +324,48 @@
         border-radius: 8px;
       }
 
+      .info {
+        position: fixed;
+        left: 50vw;
+        right: auto;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        z-index: 20;
+        width: min(360px, calc(100vw - 24px));
+        max-height: min(44dvh, 360px);
+        overflow: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        transform: translateX(-50%) translateY(12px);
+      }
+
+      .marker.is-active .info {
+        animation: sheetUp 180ms ease both;
+      }
+
+      .info-close {
+        position: sticky;
+        top: 0;
+        right: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        float: right;
+        width: 32px;
+        height: 32px;
+        margin: -4px -4px 2px 10px;
+        border-radius: 999px;
+        background: rgba(91, 56, 32, 0.1);
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .marker:hover .info,
+      .marker:focus-visible .info,
+      .marker.is-active .info {
+        transform: translateX(-50%) translateY(0);
+      }
+
       .daxiong { left: 50%; top: 15%; }
       .wenshu { left: 28%; top: 20%; }
       .puxian { left: 72%; top: 20%; }
@@ -301,6 +374,71 @@
       .tianwang { left: 50%; top: 44%; }
       .caishen { left: 74%; top: 67%; }
       .gate { left: 50%; top: 76%; }
+    }
+
+    @media (max-width: 920px) and (orientation: landscape) {
+      body.has-active-marker {
+        overflow: hidden;
+      }
+
+      .page {
+        width: 100%;
+        padding: 10px;
+      }
+
+      header {
+        display: none;
+      }
+
+      .map-shell {
+        height: calc(100dvh - 20px);
+      }
+
+      .map-art {
+        height: 100%;
+      }
+
+      .caption {
+        display: none;
+      }
+
+      .info {
+        inset: calc(10px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
+        left: auto;
+        bottom: auto;
+        width: auto;
+        max-height: none;
+        padding: clamp(18px, 4vw, 28px);
+        border-radius: 14px;
+        background:
+          linear-gradient(180deg, rgba(255, 250, 234, 0.98), rgba(250, 239, 204, 0.98));
+        transform: translateY(10px) scale(0.98);
+      }
+
+      .marker:hover .info,
+      .marker:focus-visible .info,
+      .marker.is-active .info {
+        transform: translateY(0) scale(1);
+      }
+
+      .marker.is-active .info {
+        animation: fullScreenIn 180ms ease both;
+      }
+
+      .info h2 {
+        margin-right: 46px;
+        font-size: clamp(22px, 4vw, 34px);
+      }
+
+      .info p {
+        max-width: 760px;
+        font-size: clamp(15px, 2.4vw, 18px);
+      }
+
+      .blessing {
+        margin-top: 14px;
+        font-size: clamp(15px, 2.2vw, 18px);
+      }
     }
 
     @media (max-width: 480px) {
@@ -324,7 +462,33 @@
       }
 
       .info {
-        bottom: 28px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        width: calc(100vw - 20px);
+        max-height: 48dvh;
+      }
+    }
+
+    @keyframes sheetUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    @keyframes fullScreenIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
     }
   </style>
@@ -426,6 +590,13 @@
   <script>
     const markers = Array.from(document.querySelectorAll(".marker"));
 
+    function syncOverlayState() {
+      document.body.classList.toggle(
+        "has-active-marker",
+        markers.some((marker) => marker.classList.contains("is-active"))
+      );
+    }
+
     function closeMarkers(exceptMarker) {
       markers.forEach((marker) => {
         if (marker !== exceptMarker) {
@@ -433,9 +604,20 @@
           marker.setAttribute("aria-expanded", "false");
         }
       });
+      syncOverlayState();
     }
 
     markers.forEach((marker) => {
+      const info = marker.querySelector(".info");
+      const closeButton = document.createElement("button");
+
+      closeButton.type = "button";
+      closeButton.className = "info-close";
+      closeButton.setAttribute("aria-label", "关闭介绍");
+      closeButton.innerHTML = "&times;";
+      info.prepend(closeButton);
+      info.setAttribute("role", "dialog");
+
       marker.setAttribute("role", "button");
       marker.setAttribute("aria-expanded", "false");
 
@@ -446,6 +628,18 @@
         closeMarkers(marker);
         marker.classList.toggle("is-active", nextActive);
         marker.setAttribute("aria-expanded", String(nextActive));
+        syncOverlayState();
+      });
+
+      info.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+
+      closeButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        marker.classList.remove("is-active");
+        marker.setAttribute("aria-expanded", "false");
+        syncOverlayState();
       });
 
       marker.addEventListener("keydown", (event) => {
@@ -457,6 +651,7 @@
         if (event.key === "Escape") {
           marker.classList.remove("is-active");
           marker.setAttribute("aria-expanded", "false");
+          syncOverlayState();
         }
       });
     });
