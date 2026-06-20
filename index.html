@@ -235,6 +235,10 @@
       cursor: pointer;
     }
 
+    .mobile-info-sheet {
+      display: none;
+    }
+
     .marker:hover .info,
     .marker:focus-visible .info,
     .marker.is-active .info {
@@ -359,18 +363,21 @@
 
       .info {
         position: fixed;
-        left: 50vw;
-        right: auto;
+        left: max(12px, env(safe-area-inset-left));
+        right: max(12px, env(safe-area-inset-right));
         top: auto;
-        bottom: calc(12px + env(safe-area-inset-bottom));
+        bottom: calc(clamp(8px, 2.4dvh, 16px) + env(safe-area-inset-bottom));
         z-index: 20;
-        width: min(300px, calc(100vw - 32px));
-        max-height: min(34dvh, 260px);
-        padding: 10px 12px 11px;
+        width: auto;
+        max-width: clamp(232px, 78vw, 340px);
+        margin-inline: auto;
+        max-height: clamp(136px, 30dvh, 280px);
+        padding: clamp(8px, 2.5vw, 14px) clamp(10px, 3vw, 16px) clamp(9px, 2.7vw, 15px);
+        border-radius: clamp(8px, 2.4vw, 12px);
         overflow: auto;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
-        transform: translateX(-50%) translateY(12px);
+        transform: translateY(12px);
       }
 
       .marker.is-active .info {
@@ -386,19 +393,19 @@
         align-items: center;
         justify-content: center;
         float: right;
-        width: 28px;
-        height: 28px;
-        margin: -2px -2px 0 8px;
+        width: clamp(24px, 7vw, 30px);
+        height: clamp(24px, 7vw, 30px);
+        margin: -2px -2px 0 clamp(6px, 2vw, 10px);
         border-radius: 999px;
         background: rgba(91, 56, 32, 0.1);
-        font-size: 18px;
+        font-size: clamp(16px, 4.8vw, 20px);
         line-height: 1;
       }
 
       .marker:hover .info,
       .marker:focus-visible .info,
       .marker.is-active .info {
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
       }
 
       .daxiong { left: 50%; top: 17%; }
@@ -411,13 +418,14 @@
       .gate { left: 50%; top: 82%; }
 
       .info h2 {
-        font-size: 15px;
+        margin-bottom: clamp(4px, 1.4vw, 7px);
+        font-size: clamp(14px, 4vw, 17px);
       }
 
       .info p,
       .blessing {
-        font-size: 12px;
-        line-height: 1.55;
+        font-size: clamp(11px, 3.25vw, 13px);
+        line-height: 1.5;
       }
     }
 
@@ -439,6 +447,81 @@
 
       .caption {
         display: none;
+      }
+
+      .marker .info {
+        display: none;
+      }
+
+      .mobile-info-sheet {
+        position: fixed;
+        left: max(10px, env(safe-area-inset-left));
+        right: max(10px, env(safe-area-inset-right));
+        bottom: calc(clamp(8px, 2.4dvh, 16px) + env(safe-area-inset-bottom));
+        z-index: 40;
+        display: block;
+        width: auto;
+        max-width: clamp(220px, 82vw, 340px);
+        max-height: clamp(126px, 30dvh, 280px);
+        margin-inline: auto;
+        padding: clamp(8px, 2.5vw, 14px) clamp(10px, 3vw, 16px) clamp(9px, 2.7vw, 15px);
+        border: 1px solid rgba(91, 56, 32, 0.22);
+        border-radius: clamp(8px, 2.4vw, 12px);
+        background: rgba(255, 249, 232, 0.97);
+        color: var(--ink);
+        box-shadow: 0 18px 42px rgba(42, 25, 12, 0.28);
+        opacity: 0;
+        overflow: auto;
+        pointer-events: none;
+        transform: translateY(24px);
+        transition: opacity 160ms ease, transform 160ms ease;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      body.has-mobile-sheet .mobile-info-sheet {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .mobile-info-sheet .info-close {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        float: right;
+        width: clamp(24px, 7vw, 30px);
+        height: clamp(24px, 7vw, 30px);
+        margin: -2px -2px 0 clamp(6px, 2vw, 10px);
+        border-radius: 999px;
+        background: rgba(91, 56, 32, 0.1);
+        font-size: clamp(16px, 4.8vw, 20px);
+        line-height: 1;
+      }
+
+      .mobile-info-sheet h2 {
+        margin: 0 0 clamp(4px, 1.4vw, 7px);
+        font-size: clamp(14px, 4vw, 17px);
+        line-height: 1.28;
+      }
+
+      .mobile-info-sheet p {
+        margin: 0;
+        color: var(--muted);
+        font-size: clamp(11px, 3.25vw, 13px);
+        line-height: 1.5;
+      }
+
+      .mobile-info-sheet .blessing {
+        display: inline-flex;
+        margin-top: 8px;
+        color: var(--red);
+        font-size: clamp(11px, 3.25vw, 13px);
+        font-weight: 800;
+        line-height: 1.5;
       }
     }
 
@@ -531,21 +614,22 @@
       }
 
       .info {
-        bottom: calc(10px + env(safe-area-inset-bottom));
-        width: min(292px, calc(100vw - 28px));
-        max-height: 32dvh;
+        left: max(10px, env(safe-area-inset-left));
+        right: max(10px, env(safe-area-inset-right));
+        max-width: clamp(220px, 82vw, 292px);
+        max-height: clamp(126px, 28dvh, 230px);
       }
     }
 
     @keyframes sheetUp {
       from {
         opacity: 0;
-        transform: translateX(-50%) translateY(24px);
+        transform: translateY(24px);
       }
 
       to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
       }
     }
 
@@ -660,6 +744,19 @@
     const mapScroller = document.querySelector("main");
     const markers = Array.from(document.querySelectorAll(".marker"));
     const portraitQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
+    const mobileSheet = document.createElement("aside");
+    const mobileCloseButton = document.createElement("button");
+    const mobileSheetContent = document.createElement("div");
+
+    mobileSheet.className = "mobile-info-sheet";
+    mobileSheet.setAttribute("role", "dialog");
+    mobileSheet.setAttribute("aria-modal", "false");
+    mobileCloseButton.type = "button";
+    mobileCloseButton.className = "info-close";
+    mobileCloseButton.setAttribute("aria-label", "关闭介绍");
+    mobileCloseButton.innerHTML = "&times;";
+    mobileSheet.append(mobileCloseButton, mobileSheetContent);
+    document.body.append(mobileSheet);
 
     function centerMapOnPortrait() {
       if (!portraitQuery.matches || !mapScroller) {
@@ -669,6 +766,18 @@
       requestAnimationFrame(() => {
         mapScroller.scrollLeft = (mapScroller.scrollWidth - mapScroller.clientWidth) / 2;
       });
+    }
+
+    function hideMobileSheet() {
+      document.body.classList.remove("has-mobile-sheet");
+      mobileSheetContent.innerHTML = "";
+    }
+
+    function showMobileSheet(marker) {
+      const sourceInfo = marker.querySelector(".info").cloneNode(true);
+      sourceInfo.querySelector(".info-close")?.remove();
+      mobileSheetContent.innerHTML = sourceInfo.innerHTML;
+      document.body.classList.add("has-mobile-sheet");
     }
 
     function syncOverlayState() {
@@ -685,6 +794,9 @@
           marker.setAttribute("aria-expanded", "false");
         }
       });
+      if (!exceptMarker) {
+        hideMobileSheet();
+      }
       syncOverlayState();
     }
 
@@ -709,6 +821,11 @@
         closeMarkers(marker);
         marker.classList.toggle("is-active", nextActive);
         marker.setAttribute("aria-expanded", String(nextActive));
+        if (nextActive && portraitQuery.matches) {
+          showMobileSheet(marker);
+        } else {
+          hideMobileSheet();
+        }
         syncOverlayState();
       });
 
@@ -720,6 +837,7 @@
         event.stopPropagation();
         marker.classList.remove("is-active");
         marker.setAttribute("aria-expanded", "false");
+        hideMobileSheet();
         syncOverlayState();
       });
 
@@ -732,14 +850,36 @@
         if (event.key === "Escape") {
           marker.classList.remove("is-active");
           marker.setAttribute("aria-expanded", "false");
+          hideMobileSheet();
           syncOverlayState();
         }
       });
     });
 
     document.addEventListener("click", () => closeMarkers());
-    window.addEventListener("load", centerMapOnPortrait);
-    window.addEventListener("resize", centerMapOnPortrait);
+    mobileSheet.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+    mobileCloseButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeMarkers();
+    });
+    window.addEventListener("load", () => {
+      centerMapOnPortrait();
+      const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
+      if (activeMarker && portraitQuery.matches) {
+        showMobileSheet(activeMarker);
+      }
+    });
+    window.addEventListener("resize", () => {
+      centerMapOnPortrait();
+      const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
+      if (activeMarker && portraitQuery.matches) {
+        showMobileSheet(activeMarker);
+      } else {
+        hideMobileSheet();
+      }
+    });
   </script>
 </body>
 </html>
