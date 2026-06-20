@@ -790,7 +790,7 @@
 
     <main>
       <section class="map-shell" aria-label="银杏寺庙中轴线地图">
-        <img class="map-art" src="assets/temple-map-axis-bell-drum.png" width="1536" height="1024" fetchpriority="high" alt="秋日银杏寺庙庭院中轴线地图，钟楼和鼓楼位于山门与天王殿之间">
+        <img class="map-art" src="assets/temple-map-axis-bell-drum-optimized.jpg" width="1280" height="853" fetchpriority="high" onerror="this.onerror=null; this.src='assets/temple-map-axis-bell-drum.png'; this.width=1536; this.height=1024;" alt="秋日银杏寺庙庭院中轴线地图，钟楼和鼓楼位于山门与天王殿之间">
 
         <article class="marker daxiong" tabindex="0" aria-label="大雄宝殿">
           <div class="pin"><span>大雄宝殿</span></div>
@@ -871,6 +871,7 @@
   <script>
     const mapScroller = document.querySelector("main");
     const mapShell = document.querySelector(".map-shell");
+    const mapArt = document.querySelector(".map-art");
     const markers = Array.from(document.querySelectorAll(".marker"));
     const portraitQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
     const landscapeQuery = window.matchMedia("(max-width: 920px) and (orientation: landscape)");
@@ -995,6 +996,36 @@
       );
     }
 
+    function getActiveMarker() {
+      return markers.find((marker) => marker.classList.contains("is-active"));
+    }
+
+    function syncResponsiveLayout() {
+      centerMapOnPortrait();
+      syncLandscapeMarkerPositions();
+
+      const activeMarker = getActiveMarker();
+      if (activeMarker && mobileQuery.matches) {
+        showMobileSheet(activeMarker);
+      } else if (!activeMarker || !mobileQuery.matches) {
+        hideMobileSheet();
+      }
+    }
+
+    function scheduleResponsiveLayoutSync() {
+      requestAnimationFrame(syncResponsiveLayout);
+      window.setTimeout(syncResponsiveLayout, 120);
+      window.setTimeout(syncResponsiveLayout, 360);
+    }
+
+    function watchMediaQuery(query) {
+      if (query.addEventListener) {
+        query.addEventListener("change", scheduleResponsiveLayoutSync);
+      } else if (query.addListener) {
+        query.addListener(scheduleResponsiveLayoutSync);
+      }
+    }
+
     function closeMarkers(exceptMarker) {
       markers.forEach((marker) => {
         if (marker !== exceptMarker) {
@@ -1073,29 +1104,20 @@
       closeMarkers();
     });
     mapScroller?.addEventListener("scroll", () => {
-      const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
+      const activeMarker = getActiveMarker();
       if (activeMarker && portraitQuery.matches) {
         positionMobileSheet(activeMarker);
       }
     }, { passive: true });
-    window.addEventListener("load", () => {
-      centerMapOnPortrait();
-      syncLandscapeMarkerPositions();
-      const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
-      if (activeMarker && mobileQuery.matches) {
-        showMobileSheet(activeMarker);
-      }
-    });
-    window.addEventListener("resize", () => {
-      centerMapOnPortrait();
-      syncLandscapeMarkerPositions();
-      const activeMarker = markers.find((marker) => marker.classList.contains("is-active"));
-      if (activeMarker && mobileQuery.matches) {
-        showMobileSheet(activeMarker);
-      } else {
-        hideMobileSheet();
-      }
-    });
+    window.addEventListener("load", scheduleResponsiveLayoutSync);
+    window.addEventListener("resize", scheduleResponsiveLayoutSync);
+    window.addEventListener("orientationchange", scheduleResponsiveLayoutSync);
+    mapArt?.addEventListener("load", scheduleResponsiveLayoutSync);
+    watchMediaQuery(portraitQuery);
+    watchMediaQuery(landscapeQuery);
+    watchMediaQuery(mobileQuery);
+    window.visualViewport?.addEventListener("resize", scheduleResponsiveLayoutSync);
+    window.visualViewport?.addEventListener("scroll", scheduleResponsiveLayoutSync);
   </script>
 </body>
 </html>
