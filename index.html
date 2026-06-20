@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>银杏寺庙导览图</title>
+  <style>
+    :root {
+      --ink: #34271d;
+      --muted: #746251;
+      --paper: #fff7df;
+      --paper-soft: #f5e7bf;
+      --red: #973b2e;
+      --gold: #d9a23a;
+      --line: rgba(91, 56, 32, 0.24);
+      --shadow: rgba(47, 31, 18, 0.24);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 16% 10%, rgba(255, 249, 210, 0.84), transparent 24%),
+        radial-gradient(circle at 80% 0%, rgba(215, 157, 42, 0.24), transparent 30%),
+        linear-gradient(180deg, #f5e7bc 0%, #d2a755 100%);
+    }
+
+    .page {
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 30px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 60px);
+      line-height: 1.02;
+      letter-spacing: 0;
+      text-shadow: 2px 2px 0 rgba(255, 251, 224, 0.94), 6px 6px 0 rgba(151, 59, 46, 0.1);
+    }
+
+    .tagline {
+      margin: 10px 0 0;
+      max-width: 760px;
+      color: rgba(52, 39, 29, 0.76);
+      font-size: clamp(14px, 2vw, 18px);
+      line-height: 1.75;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 250px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 5px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 248, 220, 0.74);
+      color: rgba(52, 39, 29, 0.76);
+      font-size: 13px;
+      white-space: nowrap;
+      backdrop-filter: blur(8px);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 0 3px rgba(151, 59, 46, 0.12);
+    }
+
+    .map-shell {
+      position: relative;
+      border: 4px solid rgba(91, 56, 32, 0.58);
+      border-radius: 18px;
+      background: #cba25b;
+      box-shadow: 0 24px 62px var(--shadow);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .map-art {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+    }
+
+    .map-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255, 246, 204, 0.08), transparent 22%, rgba(65, 40, 24, 0.14)),
+        radial-gradient(circle at 50% 52%, transparent 0 38%, rgba(47, 31, 18, 0.18) 100%);
+    }
+
+    .marker {
+      position: absolute;
+      z-index: 2;
+      width: 0;
+      height: 0;
+      outline: none;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .marker::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255, 247, 204, 0.92);
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow:
+        0 0 0 4px rgba(77, 45, 22, 0.3),
+        0 0 18px rgba(255, 218, 96, 0.88);
+      transform: translate(-50%, -50%);
+    }
+
+    .pin {
+      position: absolute;
+      left: 0;
+      top: -12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 6px 11px;
+      border: 1px solid rgba(255, 236, 176, 0.78);
+      border-radius: 999px;
+      background: rgba(62, 40, 24, 0.72);
+      color: #fff3c2;
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 10px 26px rgba(42, 25, 12, 0.26);
+      backdrop-filter: blur(8px);
+      transform: translate(-50%, -100%);
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .pin::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 12px rgba(255, 219, 111, 0.75);
+    }
+
+    .marker:hover .pin,
+    .marker:focus-visible .pin,
+    .marker.is-active .pin {
+      transform: translate(-50%, calc(-100% - 3px));
+      background: rgba(132, 49, 35, 0.86);
+      box-shadow: 0 14px 34px rgba(42, 25, 12, 0.32);
+    }
+
+    .info {
+      position: absolute;
+      left: 0;
+      bottom: 54px;
+      width: min(270px, 78vw);
+      transform: translateX(-50%) translateY(8px);
+      padding: 13px 14px;
+      border: 1px solid rgba(91, 56, 32, 0.22);
+      border-radius: 8px;
+      background: rgba(255, 249, 232, 0.96);
+      color: var(--ink);
+      box-shadow: 0 18px 42px rgba(42, 25, 12, 0.26);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .marker:hover .info,
+    .marker:focus-visible .info,
+    .marker.is-active .info {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .info h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      line-height: 1.28;
+    }
+
+    .info p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .blessing {
+      display: inline-flex;
+      margin-top: 8px;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .caption {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 14px;
+      z-index: 2;
+      margin: 0;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 236, 176, 0.42);
+      border-radius: 999px;
+      background: rgba(62, 40, 24, 0.54);
+      color: rgba(255, 246, 216, 0.84);
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .daxiong { left: 50%; top: 17%; }
+    .wenshu { left: 25%; top: 21%; }
+    .puxian { left: 75%; top: 21%; }
+    .clock { left: 24%; top: 52%; }
+    .drum { left: 74%; top: 52%; }
+    .tianwang { left: 50%; top: 48%; }
+    .caishen { left: 78%; top: 72%; }
+    .gate { left: 50%; top: 82%; }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(100% - 20px, 640px);
+        padding-top: 20px;
+      }
+
+      header {
+        display: block;
+      }
+
+      .legend {
+        justify-content: flex-start;
+        margin-top: 12px;
+      }
+
+      .map-shell {
+        min-height: 760px;
+      }
+
+      .map-art {
+        height: 760px;
+      }
+
+      .pin {
+        min-height: 29px;
+        padding: 5px 9px;
+        font-size: 12px;
+      }
+
+      .caption {
+        position: static;
+        margin: 10px;
+        border-radius: 8px;
+      }
+
+      .daxiong { left: 50%; top: 15%; }
+      .wenshu { left: 28%; top: 20%; }
+      .puxian { left: 72%; top: 20%; }
+      .clock { left: 25%; top: 52%; }
+      .drum { left: 75%; top: 52%; }
+      .tianwang { left: 50%; top: 44%; }
+      .caishen { left: 74%; top: 67%; }
+      .gate { left: 50%; top: 76%; }
+    }
+
+    @media (max-width: 480px) {
+      .marker {
+        width: 30px;
+        height: 30px;
+        transform: translate(-50%, -50%);
+      }
+
+      .marker::after {
+        left: 50%;
+        top: 50%;
+      }
+
+      .pin span {
+        display: none;
+      }
+
+      .pin {
+        display: none;
+      }
+
+      .info {
+        bottom: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <h1>银杏寺庙导览图</h1>
+        <p class="tagline">以秋日红墙、银杏、灰瓦庭院为主视觉，保留中轴线参观顺序。悬浮或点按标注查看殿堂说明。</p>
+      </div>
+      <div class="legend" aria-label="图例">
+        <span><i class="dot"></i>殿堂标注</span>
+        <span><i class="dot" style="background: var(--gold)"></i>中轴导览</span>
+        <span><i class="dot" style="background: var(--red)"></i>祈愿方向</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="map-shell" aria-label="银杏寺庙中轴线地图">
+        <img class="map-art" src="assets/temple-map-axis-bell-drum.png" alt="秋日银杏寺庙庭院中轴线地图，钟楼和鼓楼位于山门与天王殿之间">
+
+        <article class="marker daxiong" tabindex="0" aria-label="大雄宝殿">
+          <div class="pin"><span>大雄宝殿</span></div>
+          <div class="info">
+            <h2>释迦牟尼佛</h2>
+            <p>寺院主殿常供奉本师释迦牟尼佛，也可能有药师佛、阿弥陀佛等三佛同殿。</p>
+            <span class="blessing">祈愿：平安、智慧、福德</span>
+          </div>
+        </article>
+
+        <article class="marker wenshu" tabindex="0" aria-label="文殊殿">
+          <div class="pin"><span>文殊殿</span></div>
+          <div class="info">
+            <h2>文殊菩萨</h2>
+            <p>象征智慧与清明思辨，是很多人求学业、考试与开智慧时参拜的对象。</p>
+            <span class="blessing">祈愿：学业、考试、智慧</span>
+          </div>
+        </article>
+
+        <article class="marker puxian" tabindex="0" aria-label="普贤殿">
+          <div class="pin"><span>普贤殿</span></div>
+          <div class="info">
+            <h2>普贤菩萨</h2>
+            <p>代表实践、愿力与行持，提醒人把善愿落到行动里。</p>
+            <span class="blessing">祈愿：事业践行、愿望成就</span>
+          </div>
+        </article>
+
+        <article class="marker clock" tabindex="0" aria-label="钟楼">
+          <div class="pin"><span>钟楼</span></div>
+          <div class="info">
+            <h2>晨钟</h2>
+            <p>钟声用于报时、集众和提醒修行。很多寺院钟楼在东侧或左侧，与鼓楼成对出现。</p>
+            <span class="blessing">寓意：醒心、平安、除烦恼</span>
+          </div>
+        </article>
+
+        <article class="marker drum" tabindex="0" aria-label="鼓楼">
+          <div class="pin"><span>鼓楼</span></div>
+          <div class="info">
+            <h2>暮鼓</h2>
+            <p>鼓声常与钟声相对，形成“晨钟暮鼓”的节奏，也象征提醒大众收摄身心。</p>
+            <span class="blessing">寓意：定心、振作、守时</span>
+          </div>
+        </article>
+
+        <article class="marker tianwang" tabindex="0" aria-label="天王殿">
+          <div class="pin"><span>天王殿</span></div>
+          <div class="info">
+            <h2>弥勒菩萨与四大天王</h2>
+            <p>进山门后常见天王殿，正面多供弥勒菩萨，两侧为护法天王，背后常见韦驮菩萨。</p>
+            <span class="blessing">祈愿：欢喜、护佑、顺利</span>
+          </div>
+        </article>
+
+        <article class="marker caishen" tabindex="0" aria-label="财神殿">
+          <div class="pin"><span>财神殿</span></div>
+          <div class="info">
+            <h2>财神殿</h2>
+            <p>部分寺院会设财神殿或财宝天王相关殿堂，表达对正财、善缘与事业顺遂的祈愿。</p>
+            <span class="blessing">祈愿：正财、事业、善缘</span>
+          </div>
+        </article>
+
+        <article class="marker gate" tabindex="0" aria-label="山门">
+          <div class="pin"><span>山门</span></div>
+          <div class="info">
+            <h2>进入寺院的第一道门</h2>
+            <p>山门象征从日常进入清净空间。有些寺院会在附近设置哼哈二将或护法像。</p>
+            <span class="blessing">提示：先整衣、静心、缓步入寺</span>
+          </div>
+        </article>
+
+        <p class="caption">提示：不同宗派和寺院布局会有差异，这张图展示的是入门者最常见、最容易理解的一种参观顺序。</p>
+      </section>
+    </main>
+  </div>
+  <script>
+    const markers = Array.from(document.querySelectorAll(".marker"));
+
+    function closeMarkers(exceptMarker) {
+      markers.forEach((marker) => {
+        if (marker !== exceptMarker) {
+          marker.classList.remove("is-active");
+          marker.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    markers.forEach((marker) => {
+      marker.setAttribute("role", "button");
+      marker.setAttribute("aria-expanded", "false");
+
+      marker.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const nextActive = !marker.classList.contains("is-active");
+
+        closeMarkers(marker);
+        marker.classList.toggle("is-active", nextActive);
+        marker.setAttribute("aria-expanded", String(nextActive));
+      });
+
+      marker.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          marker.click();
+        }
+
+        if (event.key === "Escape") {
+          marker.classList.remove("is-active");
+          marker.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+
+    document.addEventListener("click", () => closeMarkers());
+  </script>
+</body>
+</html>
